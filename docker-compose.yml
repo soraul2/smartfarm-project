@@ -4,13 +4,18 @@ services:
   # 백엔드 서비스 (Spring Boot)
   backend:
     # build 경로를 새 폴더 주소로 변경합니다.
-    build: ./smartfarm-backend   # <-- 수정된 부분
+    build: ./smartfarm-backend
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mariadb://db:3306/mydatabase
-      - SPRING_DATASOURCE_USERNAME=myuser
-      - SPRING_DATASOURCE_PASSWORD=mypassword
+      # application.properties의 기본값을 아래 값들로 덮어씁니다.
+      - spring.datasource.url=${DB_URL}
+      - spring.datasource.username=${DB_USER}
+      - spring.datasource.password=${DB_PASS}
+      - mqtt.broker.url=${MQTT_URL}
+      - mqtt.username=${MQTT_USER}
+      - mqtt.password=${MQTT_PASS}
+      - mqtt.client.id=${MQTT_CLIENTID}
     depends_on:
       - db
 
@@ -21,16 +26,3 @@ services:
     ports:
       - "3000:80"
 
-  # 데이터베이스 서비스 (MariaDB) - 이 부분은 변경 없음
-  db:
-    image: mariadb:10.6
-    environment:
-      - MARIADB_DATABASE=mydatabase
-      - MARIADB_USER=myuser
-      - MARIADB_PASSWORD=mypassword
-      - MARIADB_ROOT_PASSWORD=rootpassword
-    volumes:
-      - db-data:/var/lib/mysql
-
-volumes:
-  db-data:
