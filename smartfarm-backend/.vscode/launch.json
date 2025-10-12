@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SmartFarmSystemApplication<SmartFarmSystemJava>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.smartfarmsystem.server.SmartFarmSystemApplication",
+            "projectName": "SmartFarmSystemJava",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SmartFarmSystemApplication<smartfarm-backend>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.smartfarmsystem.server.SmartFarmSystemApplication",
+            "projectName": "smartfarm-backend",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

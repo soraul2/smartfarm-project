@@ -1,0 +1,17 @@
+# Build files
+/build
+/.gradle
+/out
+
+# IDE files
+.idea/
+*.iml
+.settings/
+.project
+.classpath
+
+# Log files
+*.log
+
+# Windows thumbnail cache
+Thumbs.db
