@@ -16,6 +16,10 @@ services:
       - mqtt.username=${MQTT_USER}
       - mqtt.password=${MQTT_PASS}
       - mqtt.client.id=${MQTT_CLIENTID}
+      - TZ=Asia/Seoul
+      - spring.jpa.properties.hibernate.jdbc.time_zone=Asia/Seoul 
+      # 👆 이 두 설정이 컨테이너와 Spring/JPA 시간을 KST로 맞춥니다.
+
     depends_on:
       - db
 
