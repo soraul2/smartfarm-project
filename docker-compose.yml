@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # 백엔드 서비스 (Spring Boot)
+  backend:
+    # build 경로를 새 폴더 주소로 변경합니다.
+    build: ./smartfarm-backend   # <-- 수정된 부분
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://db:3306/mydatabase
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=mypassword
+    depends_on:
+      - db
+
+  # 프론트엔드 서비스 (React)
+  frontend:
+    # build 경로를 새 폴더 주소로 변경합니다.
+    build: ./smartfarm-frontend  # <-- 수정된 부분
+    ports:
+      - "3000:80"
+
+  # 데이터베이스 서비스 (MariaDB) - 이 부분은 변경 없음
+  db:
+    image: mariadb:10.6
+    environment:
+      - MARIADB_DATABASE=mydatabase
+      - MARIADB_USER=myuser
+      - MARIADB_PASSWORD=mypassword
+      - MARIADB_ROOT_PASSWORD=rootpassword
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
