@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import logo from "@/assets/ad8065eaf38fb6ecbe2925eea91682c28d625da3.png";
-import { Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface AuthPageProps {
@@ -18,6 +18,7 @@ interface AuthPageProps {
 export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("login");
+  const [isLoading, setIsLoading] = useState(false);
 
   const [loginData, setLoginData] = useState({ email: "", password: "", remember: false });
   const [signupData, setSignupData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
@@ -37,15 +38,64 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
     }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // --- 유효성 검사 로직 추가 ---
+    if (signupData.name.trim().length < 2) {
+      toast.error("이름은 2자 이상 입력해주세요.");
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(signupData.email)) {
+      toast.error("올바른 이메일 형식이 아닙니다.");
+      return;
+    }
+
+    if (signupData.password.length < 8) {
+      toast.error("비밀번호는 8자 이상 입력해주세요.");
+      return;
+    }
+    // --- 유효성 검사 로직 끝 ---
+
     if (signupData.password !== signupData.confirmPassword) {
       toast.error("비밀번호가 일치하지 않습니다.");
       return;
     }
-    console.log("회원가입 데이터:", signupData);
-    onLoginSuccess();
-    navigate("/farms");
+
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: signupData.name,
+          email: signupData.email,
+          password: signupData.password,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("회원가입이 성공적으로 완료되었습니다. 로그인 해주세요.");
+        setActiveTab("login"); // 회원가입 성공 후 로그인 탭으로 전환
+      } else {
+        const errorText = await response.text();
+        console.log("HTTP Status Code:", response.status);
+        console.log("Error Response Text:", errorText);
+        toast.error(errorText || "회원가입에 실패했습니다.");
+      }
+    } catch (error) {
+
+
+
+      console.error("회원가입 요청 중 오류 발생:", error);
+      toast.error("서버와 통신 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -133,7 +183,12 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   </div>
                 </div>
                 <div className="pt-2">
-                  <Button type="submit" className="w-full bg-[#A8D74C] hover:bg-[#90C038] text-white transition-colors h-12">회원가입</Button>
+                  <Button type="submit" className="w-full bg-[#A8D74C] hover:bg-[#90C038] text-white transition-colors h-12" disabled={isLoading}>
+                    {isLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : null}
+                    회원가입
+                  </Button>
                 </div>
                 <p className="text-xs text-center text-[#6B7280]">
                   회원가입 시{" "}

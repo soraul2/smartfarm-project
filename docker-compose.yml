@@ -22,13 +22,19 @@ services:
 
     depends_on:
       - db
+    networks:
+      - smartfarm-net
 
   # 프론트엔드 서비스 (React)
   frontend:
     # build 경로를 새 폴더 주소로 변경합니다.
     build: ./smartfarm-frontend  # <-- 수정된 부분
     ports:
-      - "3000:80"
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - smartfarm-net
 
   db:
     image: mariadb:10.6
@@ -39,8 +45,15 @@ services:
       - MARIADB_ROOT_PASSWORD=rootpassword
     volumes:
       - db-data:/var/lib/mysql
+    networks:
+      - smartfarm-net
 
   # ----------------------------------
   # 👇 파일의 최하단에 'volumes' 섹션을 추가합니다.
 volumes: 
   db-data: 
+
+networks:
+  smartfarm-net:
+    driver: bridge
+ 
