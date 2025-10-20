@@ -56,8 +56,8 @@ public class UserService {
         // 4. 응답 DTO 생성 및 반환
         return new LoginResponseDto(
             token, 
-            user.getUsername(), 
-            user.getEmail()
+            user.getEmail(),
+            user.getUsername() 
         );
     }
 }

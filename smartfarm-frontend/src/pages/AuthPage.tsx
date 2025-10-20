@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,18 +24,31 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [loginData, setLoginData] = useState({ email: "", password: "", remember: false });
   const [signupData, setSignupData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validEmail = "ADMIN";
-    const validPassword = "1234";
+    const dataToSend = {
+      email: loginData.email,
+      password: loginData.password,
+    };
 
-    if (loginData.email === validEmail && loginData.password === validPassword) {
-      onLoginSuccess();
-      navigate("/farms");
-    } else if (loginData.email === validEmail && loginData.password !== validPassword) {
-      toast.error("비밀번호가 틀렸습니다.");
-    } else {
-      toast.error("등록되지 않은 아이디입니다.");
+    try {
+      const response = await axios.post(
+        "/api/auth/login", // The full URL will be handled by the proxy
+        dataToSend,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (response.status === 200 && response.data.token) {
+        localStorage.setItem("authToken", response.data.token);
+        toast.success("로그인 성공!");
+        onLoginSuccess();
+        navigate("/farms");
+      }
+    } catch (error) {
+      toast.error("이메일 또는 비밀번호가 일치하지 않습니다.");
+      console.error("로그인 실패:", error);
     }
   };
 
@@ -128,7 +142,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email" className="text-[#072050]">아이디</Label>
+                  <Label htmlFor="login-email" className="text-[#072050]">이메일</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
                     <Input id="login-email" type="text" placeholder="ADMIN" className="pl-10 bg-white border-[#072050]/10 focus-visible:ring-[#90CD5B] h-12" value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })} required />
