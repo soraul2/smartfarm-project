@@ -30,18 +30,13 @@ public class FarmController {
         //    '사용자 정보(UserDetails)'를 여기서 바로 꺼내 쓸 수 있습니다.
         
         // 2. userDetails.getUsername()에는 우리가 토큰에 넣었던 '이메일'이 들어있습니다.
-        String userEmail = userDetails.getUsername(); 
-
-        try {
-            // 3. Service에 폼 데이터(DTO)와 사용자 이메일을 넘겨 농장을 추가합니다.
-            Farm savedFarm = farmService.addFarm(requestDto, userEmail);
-            
-            // 4. 성공 시 200 OK와 함께 저장된 농장 정보를 반환합니다.
-            return ResponseEntity.ok(savedFarm); 
-            
-        } catch (IllegalArgumentException e) {
-            // 5. (Service에서 발생한) 중복 시리얼 등의 에러가 발생하면 400 Bad Request를 반환합니다.
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        String userEmail = userDetails.getUsername();
+        
+        // 3. Service에 폼 데이터(DTO)와 사용자 이메일을 넘겨 농장을 추가합니다.
+        // 예외 처리는 GlobalExceptionHandler에서 자동으로 처리됩니다.
+        Farm savedFarm = farmService.addFarm(requestDto, userEmail);
+        
+        // 4. 성공 시 200 OK와 함께 저장된 농장 정보를 반환합니다.
+        return ResponseEntity.ok(savedFarm);
     }
 }
