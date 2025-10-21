@@ -1,3 +1,4 @@
+// FarmService.java
 package com.smartfarmsystem.server.farm;
 
 import com.smartfarmsystem.server.user.User;
@@ -13,10 +14,9 @@ public class FarmService {
     private final DeviceRepository deviceRepository;
     private final UserRepository userRepository;
 
-    // 농장, 디바이스, 사용자 Repository를 모두 주입받습니다.
     @Autowired
-    public FarmService(FarmRepository farmRepository, 
-                       DeviceRepository deviceRepository, 
+    public FarmService(FarmRepository farmRepository,
+                       DeviceRepository deviceRepository,
                        UserRepository userRepository) {
         this.farmRepository = farmRepository;
         this.deviceRepository = deviceRepository;
@@ -24,51 +24,51 @@ public class FarmService {
     }
 
     /**
-     * 새로운 농장을 추가하는 핵심 메서드
-     * @param dto 폼에서 받은 농장 및 디바이스 정보
-     * @param userEmail (매우 중요) JWT 토큰에서 추출한, 현재 로그인된 사용자의 이메일
+     * 새로운 농장을 추가하고, 미리 등록된 디바이스들을 이 농장에 연결합니다.
+     * @param dto 폼에서 받은 농장 및 디바이스(시리얼, 설명) 정보
+     * @param userEmail JWT 토큰에서 추출한 사용자 이메일
      * @return 저장된 Farm 엔티티
      */
-    @Transactional // 이 메서드 내의 모든 DB 작업은 하나의 트랜잭션으로 묶여서 처리됩니다.
+    @Transactional // DB 작업 중 하나라도 실패하면 모두 롤백
     public Farm addFarm(FarmRequestDto dto, String userEmail) {
-        
-        // 1. (인증) 요청을 보낸 사용자를 DB에서 찾습니다.
-        //    (우리는 이메일을 ID처럼 사용하기로 했습니다)
+
+        // 1. 사용자 확인
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        // 2. (변환) DTO를 Farm 엔티티로 변환합니다.
+        // 2. 새 농장 엔티티 생성 및 기본 정보 설정
         Farm farm = new Farm();
         farm.setName(dto.getName());
         farm.setAddress(dto.getAddress());
-        farm.setDetailedAddress(dto.getDetailedAddress());
+        farm.setDetailedAddress(dto.getDetailedAddress()); // 상세 주소 추가
         farm.setDescription(dto.getDescription());
-        
-        // 3. (관계 설정) 이 농장의 주인을 방금 찾은 user로 설정합니다.
-        farm.setUser(user); 
+        farm.setUser(user); // 농장 주인 설정
 
-        // 4. (변환 및 유효성 검사) DTO에 포함된 디바이스 목록을 Device 엔티티로 변환합니다.
-        if (dto.getDevices() != null) {
+        // 3. 디바이스 연결 처리
+        if (dto.getDevices() != null && !dto.getDevices().isEmpty()) {
             for (DeviceRequestDto deviceDto : dto.getDevices()) {
-                
-                // 4-1. (유효성 검사) 디바이스 시리얼 번호가 이미 DB에 있는지 확인합니다.
-                if (deviceRepository.findBySerial(deviceDto.getSerial()).isPresent()) {
-                    throw new IllegalArgumentException("이미 등록된 디바이스 시리얼 번호입니다: " + deviceDto.getSerial());
+                // 3-1. 시리얼 번호로 DB에서 '주인 없는' 디바이스를 찾습니다.
+                Device device = deviceRepository.findBySerial(deviceDto.getSerial())
+                        .orElseThrow(() -> new IllegalArgumentException("등록되지 않은 디바이스 시리얼입니다: " + deviceDto.getSerial()));
+
+                // 3-2. (이중 체크) 혹시 이미 다른 농장에 할당되었는지 다시 확인합니다.
+                if (device.getFarm() != null) {
+                    throw new IllegalStateException("이미 다른 농장에 등록된 디바이스입니다: " + deviceDto.getSerial());
                 }
 
-                // 4-2. 새 디바이스 엔티티 생성
-                Device device = new Device();
-                device.setSerial(deviceDto.getSerial());
-                device.setDescription(deviceDto.getDescription());
-                
-                // 4-3. (관계 설정) Farm의 'addDevice' 편의 메서드를 사용해 농장과 디바이스를 연결합니다.
-                farm.addDevice(device);
+                // 3-3. 디바이스 정보 업데이트 (설명 등)
+                // (선택사항: 폼에서 입력한 설명으로 DB의 설명을 덮어쓸지 결정)
+                // device.setDescription(deviceDto.getDescription()); // 주석 처리 - 필요하면 활성화
+
+                // 3-4. 찾은 디바이스를 새로 만드는 농장에 연결합니다.
+                farm.addDevice(device); // Farm 엔티티의 연관관계 편의 메서드 사용
             }
+        } else {
+            // 디바이스가 하나도 없는 경우 (선택사항: 비어있는 농장 생성을 막을 수도 있음)
+            // throw new IllegalArgumentException("농장에 최소 하나 이상의 디바이스를 등록해야 합니다.");
         }
 
-        // 5. (저장) Farm을 저장합니다.
-        //    Farm 엔티티의 @OneToMany(cascade = CascadeType.ALL) 설정 덕분에,
-        //    Farm을 저장하면 Farm에 연결된 Device들도 자동으로 함께 DB에 저장됩니다.
+        // 4. 농장 저장 (Cascade 설정 때문에 연결된 Device들의 farm_id도 자동으로 업데이트됨)
         return farmRepository.save(farm);
     }
 }

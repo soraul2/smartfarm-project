@@ -10,6 +10,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import logo from "@/assets/ad8065eaf38fb6ecbe2925eea91682c28d625da3.png"; 
 import { ArrowLeft, Plus, X, Search, LogOut } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
 
 interface Farm {
   id: string;
@@ -26,7 +28,7 @@ interface AddFarmPageProps {
 export function AddFarmPage({ onAddFarm, onLogout }: AddFarmPageProps) {
   const navigate = useNavigate();
 
-  const [farmData, setFarmData] = useState({ name: "", address: "", detailAddress: "", description: "" });
+  const [farmData, setFarmData] = useState({ name: "", address: "", detailedAddress: "", description: "" });
   const [devices, setDevices] = useState<{ serial: string; description: string; verified: boolean }[]>([{ serial: "", description: "", verified: false }]);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [deviceCheckDialog, setDeviceCheckDialog] = useState<{ open: boolean; index: number; exists: boolean }>({ open: false, index: -1, exists: false });
@@ -76,15 +78,30 @@ export function AddFarmPage({ onAddFarm, onLogout }: AddFarmPageProps) {
     setDevices(newDevices);
   };
 
-  const handleDeviceCheck = (index: number) => {
+  const handleDeviceCheck = async (index: number) => {
     const serial = devices[index].serial.trim();
     if (!serial) {
       setErrorDialog({ open: true, message: "디바이스 시리얼을 입력해주세요." });
       return;
     }
-    const validSerials = ["ADMIN1", "ADMIN2", "ADMIN3"];
-    const exists = validSerials.includes(serial);
-    setDeviceCheckDialog({ open: true, index, exists });
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+        toast.error("로그인이 필요합니다. 다시 로그인해주세요.");
+        return;
+    }
+
+    try {
+      // 백엔드 API로 디바이스 존재 여부 및 배정 가능 여부 확인
+      await axios.get(`/api/devices/check?serial=${serial}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      // 200 OK 응답이 오면 디바이스가 존재하고 배정 가능함
+      setDeviceCheckDialog({ open: true, index, exists: true });
+    } catch (error) {
+      // 404 Not Found 등 에러 발생 시 디바이스가 없거나 이미 배정됨
+      setDeviceCheckDialog({ open: true, index, exists: false });
+    }
   };
 
   const handleDeviceRegister = () => {
@@ -93,16 +110,67 @@ export function AddFarmPage({ onAddFarm, onLogout }: AddFarmPageProps) {
     setDevices(newDevices);
     setDeviceCheckDialog({ open: false, index: -1, exists: false });
   };
-
-  const handleFarmSubmit = (e: React.FormEvent) => {
+const handleFarmSubmit = async (e: React.FormEvent) => { // 1. async 추가
     e.preventDefault();
+
+    // 2. 모든 디바이스가 조회/등록(verified)되었는지 다시 확인
     if (!devices.every(d => d.verified)) {
-      setErrorDialog({ open: true, message: "모든 디바이스를 조회하고 등록해주세요." });
-      return;
+        setErrorDialog({ open: true, message: "모든 디바이스를 조회하고 등록해주세요." });
+        return;
     }
-    onAddFarm({ name: farmData.name, address: `${farmData.address} ${farmData.detailAddress}`, description: farmData.description });
-    navigate("/farms");
-  };
+
+    // 3. 백엔드로 보낼 데이터 준비
+    const dataToSend = {
+        name: farmData.name,
+        address: farmData.address,
+        detailedAddress: farmData.detailedAddress,
+        description: farmData.description,
+        devices: devices.map(d => ({ // 검증된 디바이스 목록만 보냄
+            serial: d.serial,
+            description: d.description // 설명도 함께 보냄
+        }))
+    };
+
+    // 4. API는 보안 설정이 되어있으므로, 토큰을 가져옵니다.
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+        toast.error("로그인이 필요합니다. 다시 로그인해주세요.");
+        return;
+    }
+
+    // 5. 로딩 상태 시작 (선택사항)
+    // setIsLoading(true); // 만약 로딩 스피너가 있다면
+
+    try {
+        // 6. 백엔드 농장 추가 API 호출 (POST /api/farms)
+        // (package.json 프록시 설정을 사용한다고 가정하고 상대 주소 사용)
+        const response = await axios.post("/api/farms", dataToSend, {
+            headers: {
+                'Authorization': `Bearer ${token}`, // 헤더에 토큰 추가
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // 7. 성공! (200 OK)
+        if (response.status === 200 || response.status === 201) { // 201 Created도 성공
+            toast.success("농장이 성공적으로 추가되었습니다.");
+            // onAddFarm(response.data); // 부모 컴포넌트에 알릴 필요가 있다면
+            navigate("/farms"); // 농장 목록 페이지로 이동
+        }
+
+    } catch (error) {
+        // 8. 실패! (400 Bad Request 등)
+        let message = "농장 추가에 실패했습니다.";
+        if (axios.isAxiosError(error) && error.response && error.response.data) {
+            message = error.response.data; // 백엔드에서 보낸 에러 메시지 사용
+        }
+        toast.error(message);
+        console.error("농장 추가 실패:", error);
+    } finally {
+        // 9. 로딩 상태 종료 (선택사항)
+        // setIsLoading(false);
+    }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#F5F5F5]">
@@ -150,7 +218,7 @@ export function AddFarmPage({ onAddFarm, onLogout }: AddFarmPageProps) {
             </Dialog>
             <div className="space-y-2">
               <Label htmlFor="farm-detail-address" className="text-[#072050]">상세 주소</Label>
-              <Input id="farm-detail-address" placeholder="동/호수 등 상세 주소를 입력하세요" className="bg-white border-[#072050]/10 focus-visible:ring-[#A8D74C] h-12" value={farmData.detailAddress} onChange={(e) => setFarmData({ ...farmData, detailAddress: e.target.value })} />
+              <Input id="farm-detail-address" placeholder="동/호수 등 상세 주소를 입력하세요" className="bg-white border-[#072050]/10 focus-visible:ring-[#A8D74C] h-12" value={farmData.detailedAddress} onChange={(e) => setFarmData({ ...farmData, detailedAddress: e.target.value })} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="farm-description" className="text-[#072050]">설명</Label>

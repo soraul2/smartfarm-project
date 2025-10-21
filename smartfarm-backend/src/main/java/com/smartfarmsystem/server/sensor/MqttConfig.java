@@ -72,8 +72,13 @@ public class MqttConfig {
 	@Bean
 	public MessageProducer inbound() {
         MqttPahoMessageDrivenChannelAdapter adapter =
-                new MqttPahoMessageDrivenChannelAdapter(clientId + "_inbound", mqttClientFactory(), defaultTopic);
-        adapter.setCompletionTimeout(5000);
+                // 💡 여러 토픽을 구독하려면 생성자의 마지막 인자로 나열합니다.
+                new MqttPahoMessageDrivenChannelAdapter(clientId + "_inbound", mqttClientFactory(),
+						defaultTopic,
+						"smartfarmsystem/GRW-001-A/enviroment",
+						"smartfarmsystem/GRW-001-B/enviroment");
+        
+		adapter.setCompletionTimeout(5000);
         adapter.setConverter(new DefaultPahoMessageConverter());
         adapter.setQos(1);
         adapter.setOutputChannel(mqttInputChannel());
