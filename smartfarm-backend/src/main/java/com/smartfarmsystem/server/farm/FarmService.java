@@ -35,6 +35,7 @@ public class FarmService {
         // 1. 사용자 확인
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+        //로그인이 안 됐을 경우 농장 생성 실패
 
         // 2. 새 농장 엔티티 생성 및 기본 정보 설정
         Farm farm = new Farm();
@@ -43,10 +44,15 @@ public class FarmService {
         farm.setDetailedAddress(dto.getDetailedAddress()); // 상세 주소 추가
         farm.setDescription(dto.getDescription());
         farm.setUser(user); // 농장 주인 설정
+            //farm 객체에 dto 객체를 이용해서 데이터를 넣는 작업    
+
 
         // 3. 디바이스 연결 처리
         if (dto.getDevices() != null && !dto.getDevices().isEmpty()) {
+            //디바이스가 있는지 없는지 이중 체크
             for (DeviceRequestDto deviceDto : dto.getDevices()) {
+                //모든 DeviceRequestDto deviceDto라는 리스트에 dto.getDevices() 를 실행하여 있는지 없는지 체크한다.
+
                 // 3-1. 시리얼 번호로 DB에서 '주인 없는' 디바이스를 찾습니다.
                 Device device = deviceRepository.findBySerial(deviceDto.getSerial())
                         .orElseThrow(() -> new IllegalArgumentException("등록되지 않은 디바이스 시리얼입니다: " + deviceDto.getSerial()));
@@ -59,9 +65,10 @@ public class FarmService {
                 // 3-3. 디바이스 정보 업데이트 (설명 등)
                 // (선택사항: 폼에서 입력한 설명으로 DB의 설명을 덮어쓸지 결정)
                 // device.setDescription(deviceDto.getDescription()); // 주석 처리 - 필요하면 활성화
-
+                
                 // 3-4. 찾은 디바이스를 새로 만드는 농장에 연결합니다.
                 farm.addDevice(device); // Farm 엔티티의 연관관계 편의 메서드 사용
+                //이 경우를 찾아봐야함.여기에서 여러개의 device를 list로 받아서 활용하는지 체크
             }
         } else {
             // 디바이스가 하나도 없는 경우 (선택사항: 비어있는 농장 생성을 막을 수도 있음)
