@@ -1,24 +1,46 @@
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import logo from "@/assets/ad8065eaf38fb6ecbe2925eea91682c28d625da3.png";
-import { LogOut, MapPin, Tractor, Info } from "lucide-react";
+import { LogOut, MapPin, Tractor, Info, Loader2, ServerCrash } from "lucide-react";
+import api from "@/api"; // Axios 인스턴스 import
 
 interface Farm {
-  id: string;
+  id: number; // 백엔드에서 id는 Long 타입이므로 number로 변경
   name: string;
   address: string;
-  description: string;
+  description?: string; // description은 nullable 할 수 있으므로 optional로 변경
 }
 
 interface FarmListPageProps {
-  farms: Farm[];
   onLogout: () => void;
 }
 
-export function FarmListPage({ farms, onLogout }: FarmListPageProps) {
+export function FarmListPage({ onLogout }: FarmListPageProps) {
   const navigate = useNavigate();
+  const [farms, setFarms] = useState<Farm[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFarms = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get<Farm[]>('/api/farms');
+        setFarms(response.data);
+        setError(null);
+      } catch (err) {
+        setError('농장 목록을 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFarms();
+  }, []); // 컴포넌트가 처음 렌더링될 때 한 번만 실행
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#F5F5F5]">
@@ -45,7 +67,19 @@ export function FarmListPage({ farms, onLogout }: FarmListPageProps) {
         </CardHeader>
 
         <CardContent className="p-6 pt-0 space-y-4">
-          {farms.length > 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center text-center py-12 px-6 bg-gray-50 rounded-lg">
+              <Loader2 className="mx-auto h-12 w-12 text-gray-400 animate-spin" />
+              <h3 className="mt-4 text-lg font-medium text-gray-900">농장 목록을 불러오는 중...</h3>
+              <p className="mt-1 text-sm text-gray-500">잠시만 기다려주세요.</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center text-center py-12 px-6 bg-red-50 rounded-lg border border-red-200">
+              <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
+              <h3 className="mt-4 text-lg font-medium text-red-800">오류 발생</h3>
+              <p className="mt-1 text-sm text-red-600">{error}</p>
+            </div>
+          ) : farms.length > 0 ? (
             <div className="space-y-3">
               {farms.map((farm) => (
                 <Card
