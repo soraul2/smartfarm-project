@@ -4,7 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/farms") // 이 컨트롤러의 모든 API는 '/api/farms'로 시작합니다.
@@ -38,5 +45,38 @@ public class FarmController {
         
         // 4. 성공 시 200 OK와 함께 저장된 농장 정보를 반환합니다.
         return ResponseEntity.ok(savedFarm);
+    }
+
+    /**
+     * 로그인한 사용자의 모든 농장 목록 조회 API
+     * GET /api/farms
+     */
+    @GetMapping
+    public ResponseEntity<List<Farm>> getFarms(@AuthenticationPrincipal UserDetails userDetails) {
+        // 1. @AuthenticationPrincipal을 통해 인증된 사용자의 정보를 가져옵니다.
+        String userEmail = userDetails.getUsername();
+
+        // 2. FarmService를 호출하여 해당 사용자의 농장 목록을 조회합니다.
+        List<Farm> farms = farmService.getFarmsByUser(userEmail);
+
+        // 3. 성공 시 200 OK와 함께 농장 목록을 반환합니다.
+        return ResponseEntity.ok(farms);
+    }
+
+    /**
+     * 특정 농장의 상세 정보 조회 API
+     * GET /api/farms/{farmId}
+     * @param farmId URL 경로에서 받아온 농장 ID
+     * @param userDetails 인증된 사용자 정보
+     * @return 200 OK와 함께 농장 상세 정보 반환
+     */
+    @GetMapping("/{farmId}")
+    public ResponseEntity<Farm> getFarmDetail(@PathVariable Long farmId,
+                                              @AuthenticationPrincipal UserDetails userDetails) {
+        // 1. 인증된 사용자의 이메일을 가져옵니다.
+        String userEmail = userDetails.getUsername();
+        // 2. Service를 호출하여 해당 사용자의 특정 농장 정보를 조회합니다.
+        Farm farm = farmService.getFarmDetail(farmId, userEmail);
+        return ResponseEntity.ok(farm);
     }
 }

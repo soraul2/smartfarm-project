@@ -55,11 +55,12 @@ export function FarmListPage({ onLogout }: FarmListPageProps) {
           로그아웃
         </Button> 
         <CardHeader className="space-y-3 pb-6">
-          <div className="flex flex-col items-center space-y-3">
-            <ImageWithFallback src={logo} alt="PlantOMars Logo" className="w-16 h-16 object-contain" />
+          <div className="flex flex-col items-center space-y-2">
             <div className="text-center space-y-1">
-              <h2>
-                <span className="text-[#072050]">PLANT</span><span className="text-[#A8D74C]">O</span><span className="text-[#072050]">MANAGER</span>
+              <h2 className="text-[25px] font-extrabold"> {/* 여기에 text-[25px] 추가 */}
+                <span className="text-[#072050]">PLANT</span>
+                <span className="text-[#a85a48]">O</span>
+                <span className="text-[#072050]">MANAGER</span>
               </h2>
               <p className="text-[#6B7280] text-sm">관리하실 농장을 선택해주세요</p>
             </div>
@@ -85,12 +86,9 @@ export function FarmListPage({ onLogout }: FarmListPageProps) {
                 <Card
                   key={farm.id}
                   className="bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-[#A8D74C] transition-all cursor-pointer group"
-                  onClick={() => console.log("농장 관리:", farm.id)}
+                  onClick={() => navigate(`/farm/${farm.id}`)}
                 >
                   <CardContent className="p-4 flex items-start space-x-4">
-                    <div className="mt-1 flex-shrink-0">
-                      <Tractor className="w-6 h-6 text-[#A8D74C] group-hover:scale-110 transition-transform" />
-                    </div>
                     <div className="flex-grow">
                       <h3 className="font-bold text-lg text-[#072050] mb-1">{farm.name}</h3>
                       <div className="space-y-1 text-sm text-gray-600">
@@ -104,7 +102,7 @@ export function FarmListPage({ onLogout }: FarmListPageProps) {
             </div>
           ) : (
             <div className="text-center py-12 px-6 bg-gray-50 rounded-lg">
-              <Tractor className="mx-auto h-12 w-12 text-gray-400" />
+              {/* <Tractor className="mx-auto h-12 w-12 text-gray-400" /> */}
               <h3 className="mt-2 text-lg font-medium text-gray-900">등록된 농장이 없습니다</h3>
               <p className="mt-1 text-sm text-gray-500">아래 버튼을 눌러 첫 농장을 추가해보세요.</p>
             </div>

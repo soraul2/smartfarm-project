@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
-import logo from "@/assets/ad8065eaf38fb6ecbe2925eea91682c28d625da3.png";
 import { Mail, ArrowLeft } from "lucide-react";
 
 export function ForgotPasswordPage() {
@@ -28,10 +26,9 @@ export function ForgotPasswordPage() {
 
       <Card className="w-full max-w-md relative z-10 shadow-xl border-0">
         <CardHeader className="space-y-3 pb-6">
-          <div className="flex flex-col items-center space-y-3">
-            <ImageWithFallback src={logo} alt="PlantOMars Logo" className="w-16 h-16 object-contain" />
+          <div className="flex flex-col items-center space-y-2">
             <div className="text-center space-y-1">
-              <h2><span className="text-[#072050]">PLANT</span><span className="text-[#A8D74C]">O</span><span className="text-[#072050]">MANAGER</span></h2>
+              <h2 className="text-[25px] font-extrabold"><span className="text-[#072050]">PLANT</span><span className="text-[#a85a48]">O</span><span className="text-[#072050]">MANAGER</span></h2>
               <p className="text-[#6B7280] text-sm">비밀번호를 재설정하세요</p>
             </div>
           </div>

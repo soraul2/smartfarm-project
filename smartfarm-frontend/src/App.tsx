@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthPage } from "./pages/AuthPage";
 import { FarmListPage } from "./pages/FarmListPage";
+import { FarmDetailPage } from "./pages/FarmDetailPage"; // 상세 페이지 컴포넌트 (생성 예정)
 import { AddFarmPage } from "./pages/AddFarmPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { Toaster } from "sonner";
@@ -46,6 +47,7 @@ export default function App() {
         <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
           <Route path="/farms" element={<FarmListPage onLogout={handleLogout} />} />
           <Route path="/add-farm" element={<AddFarmPage onLogout={handleLogout} />} />
+          <Route path="/farm/:farmId" element={<FarmDetailPage onLogout={handleLogout} />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

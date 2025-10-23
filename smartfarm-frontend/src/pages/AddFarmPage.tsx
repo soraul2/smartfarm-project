@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
-import logo from "@/assets/ad8065eaf38fb6ecbe2925eea91682c28d625da3.png"; 
 import { ArrowLeft, Plus, X, Search, LogOut } from "lucide-react";
 import axios from "axios"; // isAxiosError를 사용하기 위해 import
 import api from "@/api"; // 백엔드 API 요청을 위한 인스턴스
@@ -162,10 +160,9 @@ const handleFarmSubmit = async (e: React.FormEvent) => { // 1. async 추가
             <LogOut className="w-4 h-4 mr-1" />
             로그아웃
           </Button>
-          <div className="flex flex-col items-center space-y-3 pt-6">
-            <ImageWithFallback src={logo} alt="PlantOMars Logo" className="w-16 h-16 object-contain" />
+          <div className="flex flex-col items-center space-y-2 pt-6">
             <div className="text-center space-y-1">
-              <h2><span className="text-[#072050]">PLANT</span><span className="text-[#A8D74C]">O</span><span className="text-[#072050]">MANAGER</span></h2>
+              <h2 className="text-[25px] font-extrabold"><span className="text-[#072050]">PLANT</span><span className="text-[#a85a48]">O</span><span className="text-[#072050]">MANAGER</span></h2>
               <p className="text-[#6B7280] text-sm">농장을 등록하고 관리를 시작하세요</p>
             </div>
           </div>

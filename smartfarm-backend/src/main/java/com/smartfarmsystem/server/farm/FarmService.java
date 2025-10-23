@@ -94,4 +94,24 @@ public class FarmService {
         // 2. 해당 사용자의 모든 농장 목록을 조회하여 반환
         return farmRepository.findByUser(user);
     }
+
+    /**
+     * 특정 사용자가 소유한 특정 농장의 상세 정보를 조회합니다.
+     * @param farmId 조회할 농장의 ID
+     * @param userEmail JWT 토큰에서 추출한 사용자 이메일
+     * @return 해당 사용자의 Farm 엔티티
+     */
+    @Transactional(readOnly = true)
+    public Farm getFarmDetail(Long farmId, String userEmail) {
+        // 1. 사용자 확인
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        // 2. 농장 ID와 사용자 정보로 농장을 조회합니다.
+        // 이렇게 하면 다른 사람의 농장 정보에 접근하는 것을 원천적으로 차단할 수 있습니다.
+        Farm farm = farmRepository.findByIdAndUser(farmId, user)
+                .orElseThrow(() -> new IllegalArgumentException("해당 농장을 찾을 수 없거나 접근 권한이 없습니다."));
+
+        return farm;
+    }
 }

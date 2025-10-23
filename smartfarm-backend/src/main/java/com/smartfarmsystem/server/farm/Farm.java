@@ -1,5 +1,6 @@
 package com.smartfarmsystem.server.farm;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.smartfarmsystem.server.user.User; // User 엔티티 import
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,6 +33,7 @@ public class Farm {
     // Farm(Many) To User(One) : 여러 농장이 한 명의 사용자에 속함
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id") // 'user_id' 라는 이름으로 User의 FK를 가짐
+    @JsonIgnore // JSON 직렬화 시 이 필드를 무시하여 순환 참조 방지
     private User user;
 
     // Farm(One) To Device(Many) : 한 농장이 여러 디바이스를 가짐

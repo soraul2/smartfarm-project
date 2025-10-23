@@ -121,11 +121,10 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
       <Card className="w-full max-w-md relative z-10 shadow-xl border-0">
         <CardHeader className="space-y-3 pb-6">
-          <div className="flex flex-col items-center space-y-3">
-            <ImageWithFallback src={logo} alt="PlantOMars Logo" className="w-16 h-16 object-contain" />
+          <div className="flex flex-col items-center space-y-2">
             <div className="text-center space-y-1">
-              <h2>
-                <span className="text-[#072050]">PLANT</span><span className="text-[#A8D74C]">O</span><span className="text-[#072050]">MANAGER</span>
+              <h2 className="text-[25px] font-extrabold">
+                <span className="text-[#072050]">PLANT</span><span className="text-[#a85a48]">O</span><span className="text-[#072050]">MANAGER</span>
               </h2>
               <p className="text-[#6B7280] text-sm">당신을 위한 농장 관리 시스템</p>
             </div>

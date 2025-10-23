@@ -1,5 +1,6 @@
 package com.smartfarmsystem.server.farm;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,5 +25,6 @@ public class Device {
     // Device(Many) To Farm(One) : 여러 디바이스가 하나의 농장에 속함
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_id") // 'farm_id' 라는 이름으로 Farm의 FK를 가짐
+    @JsonIgnore // JSON 직렬화 시 이 필드를 무시하여 순환 참조 방지
     private Farm farm;
 }
